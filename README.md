@@ -14,3 +14,6 @@ Implementation of the classic game, "Rock, Paper, Scissors"
  - The user will then play the computer, who will flip a 3-sided coin to select it's option
  - Best of 5. The first person to beat 3 games wins.
  - The player can replay the game, if they so choose.
+
+ ## Iteration 3: []
+  - TODO: Create UI
