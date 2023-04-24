@@ -2,6 +2,16 @@
 
 /* Functions */
 
+/* Reset Scores Function */
+function reset() {
+    score.player = 0;
+    score.computer = 0;
+    updatePanels(0, 0);
+    replay.disabled = true;
+    domIcons.forEach(icon => {icon.className = "#";});
+    message.textContent = "";
+}
+
 /* Information Button Clicked Function */
 function infoClicked(event) {
     window.alert(`Welcome ${playerName}, to Rock, Paper, Scissors. Can you beat the computer, first to 5?`);
@@ -22,7 +32,7 @@ function controlClick(event) {
     if (!button) return;
     
     playerChoice = button.textContent;
-    console.log(`${playerName} has chosen to play ${playerChoice.toLowerCase()}. Match beginning!`);
+    console.log(`${playerName} has chosen to play ${playerChoice.toLowerCase()}!`);
     game();
 }
 
@@ -39,31 +49,20 @@ function updateIcons(pChoice, cChoice, result) {
     });
 }
 
-/* Learn Function */
-function learn(pC) {
-    // Reset Immediate frequency every 10 rounds
-    if (count > 9) {
-        count = 0;
-        variables.rock.immediate = 0;
-        variables.paper.immediate = 0;
-        variables.scissor.immediate = 0;
-    }
+/* Update Winning Panel */
+function updatePanels(pScore, cScore) {
+    const pPanel = document.querySelector("#p-score");
+    const cPanel = document.querySelector("#c-score");
 
-    // Update variables
-    if (pC == "rock") {
-        variables.rock.frequency += 1;
-        variables.rock.immediate += 1
-    } else if (pC == "paper") {
-        variables.paper.frequency += 1;
-        variables.paper.immediate += 1;
+    if (pScore == cScore) {
+        pPanel.className = "";
+        cPanel.className = "";
     } else {
-        variables.scissor.frequency += 1;
-        variables.scissor.immediate += 1;
+        pPanel.className = pScore > cScore ? "winning" : "losing";
+        cPanel.className = cScore > pScore ? "winning" : "losing";
     }
-
-    console.log(`Learned Variables: ${variables}`)
-
-    count += 1;
+    pPanel.textContent = pScore;
+    cPanel.textContent = cScore;
 }
 
 /* Random Choice Function */
@@ -74,25 +73,14 @@ function getRandomChoice() {
     } else if (i == 1) {
         return 'Paper';
     } else {
-        return 'Scissors';
+        return 'scissors';
     }
 }
-
-/* Computer Choice Function */
-function getComputerChoice() {
-    // First game
-    if (variables.rock.frequency == 0 && variables.paper.frequency == 0 && variables.scissor.frequency == 0) {
-        return getRandomChoice();
-    }
-
-    return getRandomChoice(); // TODO: Replace with learning solutions
-};
 
 /* Play Round Function */
 function playRound() {
     let pC = playerChoice.toLowerCase();
-    let cC = getComputerChoice().toLowerCase();
-    learn(pC);
+    let cC = getRandomChoice().toLowerCase();
 
     if (pC == cC) { 
         // Case 0: Both choices are the same, i.e. Draw
@@ -122,12 +110,19 @@ function game() {
         if (score.player < 5 && score.computer < 5) {
             if (result > 0) {
                 score.player += 1;
-                const pScore = document.querySelector("#p-score");
-                pScore.textContent = score.player;
             } else {
                 score.computer += 1;
-                const cScore = document.querySelector("#c-score");
-                cScore.textContent = score.computer;
+            }
+            updatePanels(score.player, score.computer);
+        }
+
+        if (score.player == 5 || score.computer == 5) {
+            let greeting = score.player == 5 ? "Congratulations!" : "Bad Luck!";
+            if (window.confirm(`${greeting} Final score: ${score.player} vs ${score.computer}. Rematch?`)) {
+                console.log(`${playerName} has chosen to have a rematch!`);
+                reset();
+            } else {
+                replay.disabled = false;
             }
         }
     }
@@ -140,6 +135,8 @@ const domIcons = document.querySelectorAll("i");
 const buttons = document.querySelectorAll(".control");
 const inputs = document.querySelectorAll("input");
 const info = document.querySelector("#info");
+const replay = document.querySelector("#replay");
+replay.disabled = true;
 const message = document.querySelector(".message");
 
 // Icon Variables
@@ -160,15 +157,8 @@ const POINTERS = {
     COMPUTER_WIN: -1
 };
 
-// Learning Variables
-let count = 0;
-let variables = {
-    rock: {frequency: 0, immediate: 0},
-    paper: {frequency: 0, immediate: 0},
-    scissor: {frequency: 0, immediate: 0}
-};
-
 // Adding Event listeners
 inputs.forEach(player => player.addEventListener('input', nameChange));
 buttons.forEach(control => control.addEventListener('click', controlClick));
 info.addEventListener('click', infoClicked);
+replay.addEventListener('click', (e) => {reset();});
