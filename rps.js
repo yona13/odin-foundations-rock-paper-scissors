@@ -1,13 +1,73 @@
-let POINTERS = {
-    PLAYER_WIN: 1,
-    DRAW: 0,
-    COMPUTER_WIN: -1
-};
-let firstGame = true;
-const button = document.querySelector("button");
-const aName = document.querySelector("a");
+/** Rock, Paper, Scissors Script */
 
-function getComputerChoice() {
+/* Functions */
+
+/* Information Button Clicked Function */
+function infoClicked(event) {
+    window.alert(`Welcome ${playerName}, to Rock, Paper, Scissors. Can you beat the computer, first to 5?`);
+}
+
+/* Name Change Listener Function */
+function nameChange(event) {
+    if (event.target.id == "playerName") {
+        playerName = event.target.value;
+    } else {
+        computerName = event.target.value;
+    }
+}
+
+/* Control Click Listener Function */
+function controlClick(event) {
+    const button = document.querySelector(`#${event.target.innerHTML.toLowerCase()}`);
+    if (!button) return;
+    
+    playerChoice = button.textContent;
+    console.log(`${playerName} has chosen to play ${playerChoice.toLowerCase()}. Match beginning!`);
+    game();
+}
+
+/* Update Icons Function */
+function updateIcons(pChoice, cChoice, result) {
+    domIcons.forEach(icon => {
+        icon.className = icons[options.indexOf(icon.id == "p-choice" ? pChoice : cChoice)];
+        if (result > 0)
+            message.textContent = `Well done! You beat ${computerName}!`;
+        else if (!result)
+            message.textContent = `Draw! You and ${computerName} chose ${pChoice}.`;
+        else
+            message.textContent = `Unlucky, ${computerName} beat you.`;
+    });
+}
+
+/* Learn Function */
+function learn(pC) {
+    // Reset Immediate frequency every 10 rounds
+    if (count > 9) {
+        count = 0;
+        variables.rock.immediate = 0;
+        variables.paper.immediate = 0;
+        variables.scissor.immediate = 0;
+    }
+
+    // Update variables
+    if (pC == "rock") {
+        variables.rock.frequency += 1;
+        variables.rock.immediate += 1
+    } else if (pC == "paper") {
+        variables.paper.frequency += 1;
+        variables.paper.immediate += 1;
+    } else {
+        variables.scissor.frequency += 1;
+        variables.scissor.immediate += 1;
+    }
+
+    console.log(`Learned Variables: ${variables}`)
+
+    count += 1;
+}
+
+/* Random Choice Function */
+function getRandomChoice() {
     const i = Math.floor(Math.random() * 3);
     if (i == 0) {
         return 'Rock';
@@ -18,90 +78,97 @@ function getComputerChoice() {
     }
 }
 
-function playRound(playerSelection, computerSelection) {
-    pS = playerSelection.toLowerCase();
-    cS = computerSelection.toLowerCase();
+/* Computer Choice Function */
+function getComputerChoice() {
+    // First game
+    if (variables.rock.frequency == 0 && variables.paper.frequency == 0 && variables.scissor.frequency == 0) {
+        return getRandomChoice();
+    }
 
-    if (pS == cS) {
-        console.log(`Yikes! We have a draw! You both chose: ${pS}!`);
+    return getRandomChoice(); // TODO: Replace with learning solutions
+};
+
+/* Play Round Function */
+function playRound() {
+    let pC = playerChoice.toLowerCase();
+    let cC = getComputerChoice().toLowerCase();
+    learn(pC);
+
+    if (pC == cC) { 
+        // Case 0: Both choices are the same, i.e. Draw
+        console.log(`Draw! ${playerName} & ${computerName} both chose ${pC}!`);
+        updateIcons(pC, cC, POINTERS.DRAW);
         return POINTERS.DRAW;
+    } else if ((pC == "rock" && cC == "scissors") || (pC == "paper" && cC == "rock") || (pC == "scissors" && cC == "paper")) {
+        // Case 1: Player wins
+        console.log(`${playerName} has beat ${computerName} with ${pC} beating ${cC}!`);
+        updateIcons(pC, cC, POINTERS.PLAYER_WIN);
+        return POINTERS.PLAYER_WIN;
     } else {
-        if ((pS == "rock" && cS == "scissors") || (pS == "paper" && cS == "rock") || (pS == "scissors" && cS == "paper")) {
-            console.log(`You did it! ${pS} beats ${cS}!`);    
-            return POINTERS.PLAYER_WIN;
-        } else {
-            console.log(`Dang, unlucky! ${cS} beats ${pS}!`);
-            return POINTERS.COMPUTER_WIN;
-        }
+        // Case 2: Computer wins
+        console.log(`${computerName} has beat ${playerName} with ${cC} beating ${pC}!`);
+        updateIcons(pC, cC, POINTERS.COMPUTER_WIN);
+        return POINTERS.COMPUTER_WIN;
     }
 }
 
+/* Game Function */
 function game() {
-    // Best of 5 Games
-    let pScore = 0;
-    let cScore = 0;
-    let firstRound = firstGame;
-    let pName = firstGame ? "Player" : aName.text
+    let result = playRound();
+    console.log(`Result: ${result};`);
 
-    while (!(pScore == 3 || cScore == 3)) {
-        let choice;
-        if (firstRound) {
-            firstRound = false;
-            if (confirm("Welcome to Rock, Paper, Scissors. Would you like to enter your name?")) {
-                pName = prompt("Great, enter your name please.");
-                aName.textContent = pName;
-            }
-            choice = prompt(`Welcome ${pName}. Please enter your choice (rock, paper or scissors).`);
-        } else {
-            let preamble;
-            if (pScore > cScore)
-                preamble = `Well done ${pName}!`;
-            else if (pScore < cScore)
-                preamble = `Unlucky ${pName}.`;
-            else
-                preamble = "It's anyone's game!"
-            choice = prompt(`${preamble} The Score: ${pScore} vs ${cScore}; ${pName} vs Computer;. Please enter your next choice (rock, paper or scissors).`);
-        }
-        
-        if (choice == null)
-            return;
-        
-        let success = false;
-        let replay = false;
-        while (!success) {
-            if (replay) {
-                let newChoice = prompt(`You and the computer drew by both choosing ${choice}. Please choose again (rock, paper or scissors).`);
-                choice = newChoice;
-            } 
-            if (choice.toLowerCase() == "rock" || choice.toLowerCase() == "paper" || choice.toLowerCase() == "scissors") {
-                let score = playRound(choice, getComputerChoice());
-                if (score == 0) {
-                    replay = true;
-                    success = false;
-                } else if (score > 0) {
-                    pScore += 1;
-                    success = true;
-                } else {
-                    cScore += 1;
-                    success = true;
-                }
+    if (Math.abs(result) > 0) {
+        // Update Score
+        if (score.player < 5 && score.computer < 5) {
+            if (result > 0) {
+                score.player += 1;
+                const pScore = document.querySelector("#p-score");
+                pScore.textContent = score.player;
             } else {
-                let newChoice = prompt(`Sorry, you need to enter one of the following: rock, paper or scissors.`);
-                choice = newChoice
+                score.computer += 1;
+                const cScore = document.querySelector("#c-score");
+                cScore.textContent = score.computer;
             }
         }
-    }
-
-    if (cScore > pScore) {
-        console.log("Unlucky, seems like the computer has won. Better luck next time");
-    } else {
-        console.log("Well done! You beat the computer! I bet your mum's proud.");
-    }
-
-    if (firstGame) {
-        firstGame = false;
-        button.textContent = "Replay?"
     }
 }
 
-button.addEventListener('click', game);
+/* Variables */
+
+// DOM Variables
+const domIcons = document.querySelectorAll("i");
+const buttons = document.querySelectorAll(".control");
+const inputs = document.querySelectorAll("input");
+const info = document.querySelector("#info");
+const message = document.querySelector(".message");
+
+// Icon Variables
+const options = ["rock", "paper", "scissors"];
+const icons = ["fa-solid fa-hand-back-fist", "fa-solid fa-hand", "fa-solid fa-hand-scissors"];
+
+// Game Variables
+let playerName = "Player";
+let computerName = "Computer";
+let playerChoice = "";
+let score = {
+    player: 0,
+    computer: 0
+};
+const POINTERS = {
+    PLAYER_WIN: 1,
+    DRAW: 0,
+    COMPUTER_WIN: -1
+};
+
+// Learning Variables
+let count = 0;
+let variables = {
+    rock: {frequency: 0, immediate: 0},
+    paper: {frequency: 0, immediate: 0},
+    scissor: {frequency: 0, immediate: 0}
+};
+
+// Adding Event listeners
+inputs.forEach(player => player.addEventListener('input', nameChange));
+buttons.forEach(control => control.addEventListener('click', controlClick));
+info.addEventListener('click', infoClicked);

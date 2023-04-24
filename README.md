@@ -15,5 +15,7 @@ Implementation of the classic game, "Rock, Paper, Scissors"
  - Best of 5. The first person to beat 3 games wins.
  - The player can replay the game, if they so choose.
 
- ## Iteration 3: []
-  - TODO: Create UI
+ ## Iteration 3: [Date: 24/04/23 Time 08:15] -b rps-ui
+ - UI built, with a display and control panel
+ - Display shows 3 objects currently: info button, selections made by player & computer, and current score (until someone wins, then score stays the same)
+ - Control shows 3 buttons, rock, paper and scissors
